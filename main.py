@@ -30,3 +30,11 @@ def read_item(rate: int):
         if item["rate"] == rate:
             return item
     raise HTTPException(status_code=404, detail="Item not found")
+
+@app.put("/items/{rate}")
+def update_item(rate:int, item: Item):
+    for i in range(len(item_test)):
+        if item_test[i]["rate"] == rate:
+            item_test[i] = item.dict()
+            return item_test[i]
+    raise HTTPException(status_code=404, detail="Item not found")
