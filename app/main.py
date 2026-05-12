@@ -12,7 +12,7 @@ class Item(BaseModel):
     done: bool = True
     rate: Optional[int] = None
 
-item_test = [ {"mutta": "m1", "done": True, "rate": 1}, {"mutta": "m2", "done": False, "rate": 2} ]
+item_test = [ {"mutta": "m1", "done": True, "rate": 1}, {"mutta": "m2", "done": False, "rate": 2}, {"mutta": "m3", "done": True, "rate": 3} ]
 
 @app.get("/")
 async def root():
