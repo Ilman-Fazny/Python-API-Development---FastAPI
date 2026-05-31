@@ -30,20 +30,23 @@ async def root():
 
 @app.get("/posts")
 def get_posts():
+    conn = None
     try:
         conn = get_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM posts")
-        posts = cursor.fetchall()
-        cursor.close()
-        conn.close()
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT * FROM posts")
+            posts = cursor.fetchall()
         return {"data": posts}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        if conn:
+            conn.close()
 
 @app.post("/items/")
 def create_item(item: Item):
-    item.rate = randrange(1, 10)
+    next_rate = max([x["rate"] for x in item_test if x["rate"] is not None], default=0) + 1
+    item.rate = next_rate
     item_test.append(item.model_dump())
     return item_test
 
@@ -58,6 +61,7 @@ def read_item(rate: int):
 def update_item(rate:int, item: Item):
     for i in range(len(item_test)):
         if item_test[i]["rate"] == rate:
+            item.rate = rate
             item_test[i] = item.model_dump()
             return item_test[i]
     raise HTTPException(status_code=404, detail="Item not found")
