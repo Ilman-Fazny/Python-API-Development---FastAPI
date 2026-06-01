@@ -5,6 +5,12 @@ from pydantic import BaseModel
 from random import randrange
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from . import models
+from .database import engine, get_db
+from sqlalchemy.orm import Session
+from fastapi import Depends
+
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
@@ -109,3 +115,8 @@ def update_item(rate:int, item: Item):
             item_test[i] = item.model_dump()
             return item_test[i]
     raise HTTPException(status_code=404, detail="Item not found")
+
+@app.get("/sqlalchemy")
+def test_post(db: Session = Depends(get_db)):
+    posts = db.query(models.Post).all()
+    return {"data": posts}
