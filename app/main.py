@@ -3,6 +3,13 @@ from fastapi import FastAPI, HTTPException, status, Depends, Response
 from sqlalchemy.orm import Session
 from . import models, schemas
 from .database import engine, get_db
+import bcrypt
+
+def hash_password(password: str) -> str:
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -54,7 +61,6 @@ def update_post(id: int, updated_post: schemas.PostCreate, db: Session = Depends
     db.refresh(post)
     return post
 
-
 @app.post("/users", status_code=status.HTTP_201_CREATED, response_model=schemas.UserOut)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     existing_user = db.query(models.User).filter(models.User.email == user.email).first()
@@ -63,6 +69,10 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="A user with this email already exists."
         )
+    
+    # Hash the password before storing it in the database
+    hashed_password = hash_password(user.password)
+    user.password = hashed_password
 
     new_user = models.User(**user.model_dump())
     db.add(new_user)
