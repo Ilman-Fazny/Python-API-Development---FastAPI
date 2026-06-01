@@ -1,6 +1,6 @@
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel
 from random import randrange
 import psycopg2
@@ -12,6 +12,10 @@ class Item(BaseModel):
     mutta: str
     done: bool = True
     rate: Optional[int] = None
+
+class Post(BaseModel):
+    title: str
+    content: str
 
 def get_connection():
     return psycopg2.connect(
@@ -38,6 +42,28 @@ def get_posts():
             posts = cursor.fetchall()
         return {"data": posts}
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        if conn:
+            conn.close()
+
+ 
+
+@app.post("/posts", status_code=status.HTTP_201_CREATED)
+def create_post(post: Post):
+    conn = None
+    try:
+        conn = get_connection()
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "INSERT INTO posts (title, content) VALUES (%s, %s) RETURNING *",
+                (post.title, post.content))
+            new_post = cursor.fetchone()
+            conn.commit()
+        return {"data": new_post}
+    except Exception as e:
+        if conn:
+            conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         if conn:
