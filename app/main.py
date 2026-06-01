@@ -48,6 +48,24 @@ def get_posts():
             conn.close()
 
  
+@app.get("/posts/{id}")
+def get_post(id: int):
+    conn = None
+    test_post = None
+    try:
+        conn = get_connection()
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT * FROM posts WHERE id = %s", (id,))
+            test_post = cursor.fetchone()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        if conn:
+            conn.close()
+
+    if not test_post:
+        raise HTTPException(status_code=404, detail=f"Post with id {id} was not found")
+    return {"data": test_post}
 
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
 def create_post(post: Post):
