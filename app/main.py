@@ -22,6 +22,7 @@ class Item(BaseModel):
 class Post(BaseModel):
     title: str
     content: str
+    published: bool = True
 
 def get_connection():
     return psycopg2.connect(
@@ -55,23 +56,21 @@ def get_posts():
 
  
 @app.get("/posts/{id}")
-def get_post(id: int):
-    conn = None
-    test_post = None
-    try:
-        conn = get_connection()
-        with conn.cursor() as cursor:
-            cursor.execute("SELECT * FROM posts WHERE id = %s", (id,))
-            test_post = cursor.fetchone()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        if conn:
-            conn.close()
+def get_post(id: int, db: Session = Depends(get_db)):
+    post = db.query(models.Post).filter(models.Post.id == id).first()
 
-    if not test_post:
+    if not post:
         raise HTTPException(status_code=404, detail=f"Post with id {id} was not found")
-    return {"data": test_post}
+    return {"data": post}
+
+@app.post("/postss", status_code=status.HTTP_201_CREATED)
+def create_post_sqlalchemy(post: Post, db: Session = Depends(get_db)):
+    #new_post = models.Post(title=post.title, content=post.content, published=post.published)
+    new_post = models.Post(**post.dict())
+    db.add(new_post)
+    db.commit()
+    db.refresh(new_post)
+    return {"data": new_post}
 
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
 def create_post(post: Post):
@@ -92,6 +91,25 @@ def create_post(post: Post):
     finally:
         if conn:
             conn.close()
+
+@app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_post(id: int, db: Session = Depends(get_db)):
+    post = db.query(models.Post).filter(models.Post.id == id).first()
+    if not post:
+        raise HTTPException(status_code=404, detail=f"Post with id {id} was not found")
+    db.delete(post)
+    db.commit()
+    return {"message": "Post deleted successfully"}
+
+@app.put("/posts/{id}")
+def update_post(id: int, updated_post: Post, db: Session = Depends(get_db)):
+    post = db.query(models.Post).filter(models.Post.id == id).first()
+    if not post:
+        raise HTTPException(status_code=404, detail=f"Post with id {id} was not found")
+    post.update(updated_post.dict(), synchronize_session=False)
+    db.commit()
+    db.refresh(post)
+    return {"data": post}
 
 @app.post("/items/")
 def create_item(item: Item):
@@ -119,4 +137,4 @@ def update_item(rate:int, item: Item):
 @app.get("/sqlalchemy")
 def test_post(db: Session = Depends(get_db)):
     posts = db.query(models.Post).all()
-    return {"data": posts}
+    return {"data": posts} 
