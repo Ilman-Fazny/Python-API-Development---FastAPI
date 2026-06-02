@@ -1,15 +1,9 @@
 from typing import List
 from fastapi import FastAPI, HTTPException, status, Depends, Response
 from sqlalchemy.orm import Session
-from . import models, schemas
+from . import models, schemas, utils
 from .database import engine, get_db
-import bcrypt
 
-def hash_password(password: str) -> str:
-    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -71,7 +65,7 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
         )
     
     # Hash the password before storing it in the database
-    hashed_password = hash_password(user.password)
+    hashed_password = utils.hash_password(user.password)
     user.password = hashed_password
 
     new_user = models.User(**user.model_dump())
