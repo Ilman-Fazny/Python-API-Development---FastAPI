@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from sqlalchemy.orm import Session
 from ..database import get_db
-from .. import utils, schemas, models
+from .. import utils, schemas, models, oauth2
 
 router = APIRouter(
     tags=["Authentication"]
@@ -21,4 +21,7 @@ def login(user_credentials: schemas.UserLogin, db: Session = Depends(get_db)):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password."
         ) 
-    return {"message": "Login successful!"}
+    
+    access_token = oauth2.create_access_token(data={"user_id": user.id})
+
+    return {"access_token": access_token, "token_type": "bearer"}
