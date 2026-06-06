@@ -4,6 +4,17 @@ from sqlalchemy.orm import Session
 from . import models, schemas, utils
 from .database import engine, get_db
 from .routers import post, user, auth
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+class Settings(BaseSettings):
+    database_password: str
+    database_username: str
+    secret_key: str
+
+    model_config = SettingsConfigDict(env_file=".env")
+
+settings = Settings()
+print(settings.database_password)
 
 models.Base.metadata.create_all(bind=engine)
 
