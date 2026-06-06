@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic.types import conint
 
 class UserCreate(BaseModel):
     email: str
@@ -39,3 +40,7 @@ class Post(PostBase):
     owner: UserOut
 
     model_config = ConfigDict(from_attributes=True)
+
+class Vote(BaseModel):
+    post_id: int
+    dir: conint(le=1)
