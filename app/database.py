@@ -1,8 +1,13 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
+from .config import settings
 
-SQLALCHEMY_DATABASE_URL = "postgresql://postgres:!m00sx%40123@localhost/fastapi"
+    
+import urllib.parse
+
+escaped_password = urllib.parse.quote_plus(settings.database_password)
+SQLALCHEMY_DATABASE_URL = f"postgresql://{settings.database_username}:{escaped_password}@{settings.database_hostname}:{settings.database_port}/{settings.database_name}"
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
