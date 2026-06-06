@@ -2,20 +2,6 @@ from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, ConfigDict, EmailStr
 
-class PostBase(BaseModel):
-    title: str
-    content: str
-    published: bool = True
-
-class PostCreate(PostBase):
-    pass
-
-class Post(PostBase):
-    id: int
-    created_at: datetime
-
-    model_config = ConfigDict(from_attributes=True)
-
 class UserCreate(BaseModel):
     email: str
     password: str
@@ -37,3 +23,19 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     id: Optional[str] = None
+
+class PostBase(BaseModel):
+    title: str
+    content: str
+    published: bool = True
+
+class PostCreate(PostBase):
+    pass
+
+class Post(PostBase):
+    id: int
+    created_at: datetime
+    owner_id: int
+    owner: UserOut
+
+    model_config = ConfigDict(from_attributes=True)
