@@ -44,3 +44,9 @@ class Post(PostBase):
 class Vote(BaseModel):
     post_id: int
     dir: conint(le=1)
+
+class PostOut(BaseModel):
+    Post: Post
+    votes: int
+
+    model_config = ConfigDict(from_attributes=True)
