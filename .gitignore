@@ -1,3 +1,30 @@
+# Byte-compiled / optimized / DLL files (keeps compiled python files out of Git)
 __pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual Environments (keeps huge local dependency folders out of Git)
 .venv/
+venv/
+ENV/
+env/
+
+# Environment secrets and settings (prevents uploading database passwords, secret keys, API keys)
 .env
+
+# Editor & IDE settings (prevents uploading your personal editor settings/configurations)
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*.swo
+
+# Testing and Coverage (keeps test run cache directories out of Git)
+.pytest_cache/
+.tox/
+htmlcov/
+.coverage
